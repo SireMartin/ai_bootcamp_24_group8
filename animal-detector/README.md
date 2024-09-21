@@ -35,13 +35,17 @@ A web application that allows users to upload images of animals and classifies t
    git clone https://github.com/okuspocus/animal-classifier.git
    cd animal-classifier
 2. **Install Node.js Dependencies:**
+   ```bash
    npm install
-3. **Create and activate a Python virtual environment:**
+4. **Create and activate a Python virtual environment:**
+   ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-4. **Install Python dependencies:**
+6. **Install Python dependencies:**
+   ```bash
    pip install -r requirements.txt
-5. **Run the application:**
+8. **Run the application:**
+   ```bash
    npm run dev
 
 
