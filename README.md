@@ -8,6 +8,18 @@ Weekend Project for Encode Club AI Bootcamp.
     The model should be able to detect at least 10 different animals of your choice
     The model should return the name of the animal detected (classification)
 
+  We configured the system to be able to classify 10 animals:
+  *cat
+  *dog
+  *lion
+  *tiger
+  *elephant
+  *zebra
+  *giraffe
+  *bear
+  *rabbit
+  *horse
+
 Additionally, if possible:  
 
 * We will create an AI Agent that can find a page in Wikipedia with the name of the animal, we will retrieve the description, and we will determine if the animal is dangerous
