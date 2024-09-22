@@ -27,5 +27,22 @@ Additionally, if possible:
 * If the uploaded image contains an animal, we will pass the image to the AI Agent and await the answer
 * We wil display the answer on the page, indicating whether the animal in the picture is dangerous
 
+# Testing animal classification:
 
+* an image with a non listed animal:                                                            
+
+  ![imatge](https://github.com/user-attachments/assets/7a641809-607b-41b7-ad26-096110c34a3a)   
+
+
+* an image with an animal in our list:
+
+  ![imatge](https://github.com/user-attachments/assets/b21738b4-4389-4208-b08d-5d76e9b4473f)
+
+* an image without any animal:                                                                   
+
+  ![imatge](https://github.com/user-attachments/assets/dfd3b624-d843-4db0-86af-6bc20d85c443)
+
+* **a very interesting hack:**
+  
+  ![imatge](https://github.com/user-attachments/assets/ab45261a-3010-4330-b8c5-caffbb983fa3)
 
