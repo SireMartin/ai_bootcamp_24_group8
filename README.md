@@ -42,7 +42,7 @@ Additionally, if possible:
 
   ![imatge](https://github.com/user-attachments/assets/dfd3b624-d843-4db0-86af-6bc20d85c443)
 
-* **a very interesting hack:**
+* **a very interesting hack:** I wonder if Tiger Woods can be classified as dangerous or not...
   
   ![imatge](https://github.com/user-attachments/assets/ab45261a-3010-4330-b8c5-caffbb983fa3)
 
