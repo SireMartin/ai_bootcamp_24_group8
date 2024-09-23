@@ -59,5 +59,6 @@ Additionally, if possible:
 
   ![imatge](https://github.com/user-attachments/assets/76e838e2-0433-468e-8b18-734bffb55848)
 
+* **another Dangerous example:
   
-  
+  ![imatge](https://github.com/user-attachments/assets/37af10ef-6d03-48c4-86f2-dad618303539)
