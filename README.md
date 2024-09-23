@@ -10,16 +10,7 @@ Weekend Project for Encode Club AI Bootcamp.
 
 We configured the system to be able to classify 10 animals:
   
-  * cat
-  * dog
-  * lion
-  * tiger
-  * elephant
-  * zebra
-  * giraffe
-  * bear
-  * rabbit
-  * horse
+"cat", "dog", "lion", "tiger", "snake", "zebra", "giraffe", "bear", "hippopotamus", "scorpion"
 
 Additionally, if possible:  
 
@@ -46,3 +37,27 @@ Additionally, if possible:
   
   ![imatge](https://github.com/user-attachments/assets/ab45261a-3010-4330-b8c5-caffbb983fa3)
 
+# Added Wikipedia retrieval info and agent Danger Evaluation
+
+* an image with a non listed animal:
+
+  ![imatge](https://github.com/user-attachments/assets/91bfbc85-8d47-4f83-a2ad-992e6e4838cc)
+
+* an image with an animal in our list:
+
+  ![imatge](https://github.com/user-attachments/assets/1e9dd780-6793-4203-a6a5-94e292dae737)
+
+* an image without any animal:
+
+  ![imatge](https://github.com/user-attachments/assets/ab62fcff-7511-4328-8fcb-cb6e71c84ab7)
+
+* **a very interesting hack:** Looks like Tiger Woods is not dangerous...
+
+  ![imatge](https://github.com/user-attachments/assets/4f17d462-30e8-4107-bd8b-87b43179781d)
+  
+* **another not dangerous example:
+
+  ![imatge](https://github.com/user-attachments/assets/76e838e2-0433-468e-8b18-734bffb55848)
+
+  
+  
