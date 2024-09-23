@@ -21,12 +21,7 @@ export default async function handler(req, res) {
         return res.status(500).json({ message: 'Error processing the file' });
       }
 
-      // Check if files.file is an array
-      const uploadedFiles = files.file;
-      const uploadedFile = Array.isArray(uploadedFiles) ? uploadedFiles[0] : uploadedFiles;
-
-      // Log the uploaded file object for debugging
-      console.log('Uploaded file:', uploadedFile);
+      const uploadedFile = Array.isArray(files.file) ? files.file[0] : files.file;
 
       if (!uploadedFile || !uploadedFile.filepath) {
         console.error('No valid file was uploaded');
@@ -35,16 +30,38 @@ export default async function handler(req, res) {
 
       const filePath = uploadedFile.filepath || uploadedFile.path;
 
-      // Call the Python script to classify the animal
-      exec(`python3 image_classification.py "${filePath}"`, (error, stdout, stderr) => {
+      // Execute the Python script
+      exec(`python image_classification.py "${filePath}"`, (error, stdout, stderr) => {
         if (error) {
           console.error(`Error executing Python script: ${stderr}`);
           return res.status(500).json({ message: 'Error processing the image' });
         }
 
-        // Get the result from the Python script
-        const result = stdout.trim();
-        res.status(200).json({ message: result });
+        const output = stdout.trim().split('\n');
+        const label = output[0];
+        const score = parseFloat(output[1]);
+        const wikiInfo = output.slice(2, -1).join(' ');
+        const dangerStatus = output[output.length - 1];
+
+        // Check if dangerStatus is correctly parsed
+        const isDangerous = dangerStatus.includes("Yes");
+
+        // Debugging: Log what will be sent to the frontend
+        console.log('Sending response to frontend:', {
+          animal_detected: score > 0.85,
+          animal_name: label,
+          dangerous: isDangerous,
+          confidence: score,
+          wiki_info: wikiInfo,
+        });
+
+        res.status(200).json({
+          animal_detected: score > 0.65,
+          animal_name: label,
+          dangerous: isDangerous,
+          confidence: score,
+          wiki_info: wikiInfo,
+        });
       });
     });
   } else {
