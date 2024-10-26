@@ -1,0 +1,9 @@
+version: "2.4"
+services:
+  chef:
+    image: chef:1
+    build: week1
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    stdin_open: true
+    tty: true
