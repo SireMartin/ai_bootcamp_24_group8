@@ -21,3 +21,5 @@ npm install
 npm run dev
 ```
 goto http://localhost:3000 and evaluate the application
+
+![image](https://github.com/user-attachments/assets/4da608b5-2b20-42c4-b43a-17605a99dd58)
