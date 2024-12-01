@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@types/node": "^22.10.1",
+    "dotenv": "^16.4.5",
+    "llamaindex": "^0.8.23",
+    "typescript": "^5.7.2"
+  }
+}
