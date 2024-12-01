@@ -1,5 +1,6 @@
 import Head from "next/head";
-import { ChangeEvent, Component, useId, useState } from "react";
+import React, { ChangeEvent, Component, useId, useState } from "react";
+import { PropagateLoader } from "react-spinners"
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +14,8 @@ export default function Home() {
   const [animalName, setAnimalName] = useState<string | null>(null);
   const [wikiResponse, setWikiResponse] = useState<string | null>(null);
   const [dangerResponse, setDangerResponse] = useState<string | null>(null);
+  const [wikiSpinner, setWikiSpinner] = useState<boolean>(false);
+  const [ragSpinner, setRagSpinner] = useState<boolean>(false);
 
 
   //helper methods for file to base64
@@ -49,7 +52,7 @@ export default function Home() {
   doing back-end call and consuming clip-as-service there
   this requires cors to be enabled in clip-as-service!
   */
-  async function handleSubmit(event) {
+  async function handleSubmit(event: React.FormEvent<HTMLButtonElement>) {
     event.preventDefault();
     const result = await fetch("http://localhost:8081/post", {
       method: "POST",
@@ -103,7 +106,7 @@ export default function Home() {
             }
           </ol>
 
-          <form onSubmit={handleSubmit}>
+          <form>
             <input type="file" accept="image/*" onChange={handleFileChange} />
             {base64 && (
               <>
@@ -133,6 +136,7 @@ export default function Home() {
               <Button
                 type="submit"
                 onClick={async () => {
+                  setWikiSpinner(true);
                   // Post the query and nodesWithEmbedding to the server
                   const result = await fetch("/api/searchwiki", {
                     method: "POST",
@@ -156,6 +160,7 @@ export default function Home() {
                   if (payload) {
                     setAnswer(payload.response);
                   }
+                  setWikiSpinner(false);
                 }}
               >
                 Wiki Search
@@ -163,13 +168,18 @@ export default function Home() {
             </>
           )}
 
+          {wikiSpinner && (
+            <PropagateLoader />
+          )}
+
           {wikiResponse && (
-            <>
+            <><br/>
               {wikiResponse}
               <br />
               <Button
                 type="submit"
                 onClick={async () => {
+                  setRagSpinner(true);
                   // Post the query and nodesWithEmbedding to the server
                   const result = await fetch("/api/determinedangerous", {
                     method: "POST",
@@ -193,14 +203,20 @@ export default function Home() {
                   if (payload) {
                     setAnswer(payload.response);
                   }
+                  setRagSpinner(false);
                 }}
               >
                 Is {animalName} dangerous?
               </Button>
             </>
           )}
+
+          {ragSpinner && (
+            <PropagateLoader />
+          )}
+
           {dangerResponse && (
-            <div>{dangerResponse}</div>
+            <div class="bg-white">{dangerResponse}</div>
           )}
         </div>
       </main>
