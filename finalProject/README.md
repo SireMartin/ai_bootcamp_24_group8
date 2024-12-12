@@ -1,6 +1,6 @@
-# Document Assistant
+# Invoice Assistant
 
-Document Assistant is a modern, React-based web application that allows users to upload documents, ask questions about them, and receive AI-powered responses. It features a sleek UI with dark mode support, built using Next.js and shadcn/ui components.
+Invoice Assistant is a modern, React-based web application that allows users to upload documents, ask questions about them, and receive AI-powered responses. It features a sleek UI with dark mode support, built using Next.js and shadcn/ui components.
 
 ## Table of Contents
 - [Features](#features)
@@ -32,25 +32,25 @@ Document Assistant is a modern, React-based web application that allows users to
 Follow these steps to set up the Document Assistant project on your local machine:
 
 1. Clone the repository:
-   git clone https://github.com/SireMartin/ai_bootcamp_24_group8
+   `git clone https://github.com/SireMartin/ai_bootcamp_24_group8`
 
 2. Navigate to the project directory:
-   cd ai_bootcamp_24_group8/finalProject/document-assistant
+   `cd ai_bootcamp_24_group8/finalProject/document-assistant`
 
 3. Install dependencies:
-   npm install
+   `npm install`
 
 4. Install shadcn/ui components:
-   npx shadcn@latest init
+   `npx shadcn@latest init`
    
    Follow the prompts to set up shadcn/ui. Then install the required components:
-   npx shadcn@latest add button card input scroll-area tabs avatar table
+   `npx shadcn@latest add button card input scroll-area tabs avatar table`
 
 5. Install additional packages:
-   npm install lucide-react recharts
+   `npm install lucide-react recharts`
 
 6. Start the development server:
-   npm run dev
+   `npm run dev`
 
 7. Open the application: 
    Open http://localhost:3000 in your browser.
@@ -90,8 +90,6 @@ This is a front-end implementation with simulated data. To fully implement file 
 - Implement server-side logic for document processing and AI integration
 - Update the client-side code to interact with these API routes
 - Implement real data processing for the charts and insights
-
-Consider exploring [Next.js API routes documentation](https://nextjs.org/docs/api-routes/introduction) for guidance on backend integration.
 
 ## Contributing
 
