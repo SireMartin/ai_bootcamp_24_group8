@@ -53,6 +53,7 @@ export default function DocumentAssistant() {
   const [isLoading, setIsLoading] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [activeTab, setActiveTab] = useState("chat")
+  const [base64, setBase64] = useState<string | null>(null);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -66,18 +67,42 @@ export default function DocumentAssistant() {
     setIsDarkMode(!isDarkMode)
   }
 
-  const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      // Simulating invoice data extraction from uploaded files
-      const newInvoices: Invoice[] = Array.from(event.target.files).map((file, index) => ({
-        invoice: `INV00${invoices.length + index + 1}`,
-        paymentStatus: Math.random() > 0.5 ? "Paid" : "Pending",
-        totalAmount: `$${(Math.random() * 1000).toFixed(2)}`,
-        paymentMethod: ["Credit Card", "PayPal", "Bank Transfer"][Math.floor(Math.random() * 3)],
-      }))
-      setInvoices((prev) => [...prev, ...newInvoices])
-    }
-  }, [invoices])
+  //helper methods for file to base64
+  const toBase64 = (file: File) => {
+    return new Promise((resolve, reject) => {
+      const fileReader = new FileReader();
+      fileReader.readAsDataURL(file);
+
+      fileReader.onload = () => {
+        resolve(fileReader.result);
+      };
+
+      fileReader.onerror = (error) => {
+        reject(error);
+      };
+    });
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files) return;
+
+    const file = event.target.files[0];
+    const base64String = await toBase64(file);
+    setBase64(base64String as string);
+    console.log(base64?.substring(0, 40));
+
+    event.preventDefault();
+    const result = await fetch("/api/upload", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        data: base64
+      }),
+    });
+    const { data, error, payload } = await result.json();
+  };
 
   const handleSendMessage = useCallback(async () => {
     if (input.trim()) {
@@ -125,7 +150,7 @@ export default function DocumentAssistant() {
                 className="hidden"
                 onChange={handleFileUpload}
                 multiple
-                accept=".pdf,.jpg,.jpeg,.png"
+                accept=".jpg,.jpeg,.png"
               />
             </div>
             <ScrollArea className="h-[400px] w-full rounded-md border p-4">
@@ -218,4 +243,3 @@ export default function DocumentAssistant() {
     </Card>
   )
 }
-
