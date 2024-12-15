@@ -1,4 +1,4 @@
-import OpenAI, { toFile } from "openai";
+import OpenAI, { BadRequestError, toFile } from "openai";
 import { NextResponse, NextRequest } from 'next/server';
 import { json } from "stream/consumers";
 
@@ -10,6 +10,12 @@ export async function POST(req: NextRequest) {
   console.log("Received request");
   const body: { data: string } = await req.json();
   const { data } = body;
+  console.log("data : " + data?.substring(0, 20));
+  if(data === null){
+    return NextResponse.json("BadRequest");
+  }
+  const documentAssistantName: string = "documentAssistant";
+  const documentAssistantVectorStoreName: string = "documentAssistantVectorStore";
   //console.log(data.substring(0, 40));
 
   const prompt = `Analyze this receipt and extract the following information in a structured format:
@@ -146,15 +152,29 @@ export async function POST(req: NextRequest) {
 
     let listVectorStoreResp = await openai.beta.vectorStores.list();
     console.log(JSON.stringify(listVectorStoreResp));
-    if(listVectorStoreResp.data.length > 0)
+    let vectorStoreId: string = "";
+    if((listVectorStoreResp.data?.length ?? 0) > 0  && listVectorStoreResp.data[0].name === documentAssistantName)
     {
-      console.log("maarten " + listVectorStoreResp.data.length);
-      console.log("vector id " + listVectorStoreResp.data[0].id);
-      //const f = await toFile(fs.createReadStream("./uwsommelier.png"));
-      const f = await toFile(Buffer.from(JSON.stringify(result)), "maarten.json");
-      let fileCreateResp: {id: string} = await openai.files.create({file: f, purpose: "assistants"});
-      console.log(JSON.stringify("file id : " + fileCreateResp.id));
-      openai.beta.vectorStores.files.create(listVectorStoreResp.data[0].id, {file_id: fileCreateResp.id});
+      vectorStoreId = listVectorStoreResp.data[0].id;
+    }
+    else{
+      const createVectorStoreResp = await openai.beta.vectorStores.create({name: documentAssistantName});
+      vectorStoreId = createVectorStoreResp.id;
+    }
+
+    const f = await toFile(Buffer.from(JSON.stringify(result)), `${result.documentDate}-${result.merchant.name}.json`);
+    let fileCreateResp: {id: string} = await openai.files.create({file: f, purpose: "assistants"});
+    console.log(JSON.stringify("file id : " + fileCreateResp.id));
+    openai.beta.vectorStores.files.create(vectorStoreId, {file_id: fileCreateResp.id});
+
+    let listAssistantsResp = await openai.beta.assistants.list();
+    if((listAssistantsResp.data?.length ?? 0) === 0 || listAssistantsResp.data[0].name !== documentAssistantName){
+      await openai.beta.assistants.create({ model: "gpt-4o-mini", 
+        name: documentAssistantName,
+        description: "an assistant for your invoice and receipt data", 
+        instructions: "Your read and interpret tickets and invoices. You provide answers about ticket and invoice content and make calculations on image content to solve the questions",
+        tools: [{type: 'file_search'}],
+        tool_resources: {file_search: {vector_store_ids: [vectorStoreId]}}});
     }
 
     return NextResponse.json({result});
