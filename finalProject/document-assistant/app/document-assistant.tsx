@@ -53,7 +53,6 @@ export default function DocumentAssistant() {
   const [isLoading, setIsLoading] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [activeTab, setActiveTab] = useState("chat")
-  const [base64, setBase64] = useState<string | null>(null);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -89,8 +88,6 @@ export default function DocumentAssistant() {
 
     const file = event.target.files[0];
     const base64String = await toBase64(file);
-    setBase64(base64String as string);
-    console.log(base64?.substring(0, 40));
 
     const result = await fetch("/api/upload", {
       method: "POST",
@@ -98,7 +95,7 @@ export default function DocumentAssistant() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        data: base64
+        data: base64String
       }),
     });
     const { data, error, payload } = await result.json();
