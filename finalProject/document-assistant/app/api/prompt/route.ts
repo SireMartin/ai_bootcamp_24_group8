@@ -17,7 +17,8 @@ export async function POST(req: NextRequest) {
   const documentAssistantName: string = "documentAssistant";
 
   let listAssistantsResp = await openai.beta.assistants.list();
-  if((listAssistantsResp.data?.length ?? 0) >= 0 && listAssistantsResp.data[0].name === documentAssistantName){
+  let foundAssistant = listAssistantsResp.data.find(x => x.name == documentAssistantName);
+  if(foundAssistant !== undefined){
     const thread = await openai.beta.threads.create();
     const message = await openai.beta.threads.messages.create(thread.id, 
       {role: "user", content: [{ type: "text", text: question}]}
@@ -26,7 +27,12 @@ export async function POST(req: NextRequest) {
     if(run.status === "completed"){
       const messages = await openai.beta.threads.messages.list(thread.id);
       return NextResponse.json(messages.data[0].content[0]);
-    } 
-    return NextResponse.json({message: "run failes with status " + run.status}, {status: 500});
+    }
+    else{
+      return NextResponse.json({message: "run failes with status " + run.status}, {status: 500});
+    }
+  }
+  else{
+    return NextResponse.json({message: "assistant does not exist yet, first upload some documents"}, {status: 400});
   }
 }
