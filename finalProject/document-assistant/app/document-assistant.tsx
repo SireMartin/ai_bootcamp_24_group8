@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import Spinner from "@/components/ui/Spinner"
 
 const chartData = [
   { month: "Jan", essentials: 1200, discretionary: 800 },
@@ -53,6 +54,7 @@ export default function DocumentAssistant() {
   const [isLoading, setIsLoading] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [activeTab, setActiveTab] = useState("chat")
+  const [filePreview, setFilePreview] = useState<string | null>(null)
 
   useEffect(() => {
     if (isDarkMode) {
@@ -86,19 +88,31 @@ export default function DocumentAssistant() {
     event.preventDefault();
     if (!event.target.files) return;
 
+    setIsLoading(true);
+
     const file = event.target.files[0];
     const base64String = await toBase64(file);
 
-    const result = await fetch("/api/upload", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        data: base64String
-      }),
-    });
-    const { data, error, payload } = await result.json();
+    // Set file preview URL
+    setFilePreview(URL.createObjectURL(file));
+
+    try {
+      const result = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          data: base64String
+        }),
+      });
+      const { data, error, payload } = await result.json();
+      // Handle the response if needed
+    } catch (error) {
+      console.error("Upload failed", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSendMessage = useCallback(async () => {
@@ -133,7 +147,7 @@ export default function DocumentAssistant() {
           {isDarkMode ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
         </Button>
       </CardHeader>
-      <CardContent>
+      <CardContent className="relative">
         {activeTab === "chat" && (
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
@@ -149,8 +163,14 @@ export default function DocumentAssistant() {
                 multiple
                 accept=".jpg,.jpeg,.png"
               />
+              {filePreview && (
+                <button onClick={() => window.open(filePreview, '_blank')} className="flex items-center ml-2">
+                  <img src={filePreview} alt="File Preview" className="w-10 h-10 object-cover rounded-md" />
+                  <span className="ml-2 text-primary">+</span>
+                </button>
+              )}
             </div>
-            <ScrollArea className="h-[400px] w-full rounded-md border p-4">
+            <ScrollArea className="h-[400px] w-full rounded-md border p-4 relative">
               {messages.map((message, index) => (
                 <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} mb-4`}>
                   <div className={`flex items-start ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
@@ -177,7 +197,7 @@ export default function DocumentAssistant() {
                 onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
               />
               <Button onClick={handleSendMessage} disabled={isLoading}>
-                <Send className="h-4 w-4" />
+                {isLoading ? <Spinner className="h-4 w-4" /> : <Send className="h-4 w-4" />}
               </Button>
             </div>
           </div>
