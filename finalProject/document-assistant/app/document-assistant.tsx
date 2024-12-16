@@ -84,6 +84,7 @@ export default function DocumentAssistant() {
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
     if (!event.target.files) return;
 
     const file = event.target.files[0];
@@ -91,7 +92,6 @@ export default function DocumentAssistant() {
     setBase64(base64String as string);
     console.log(base64?.substring(0, 40));
 
-    event.preventDefault();
     const result = await fetch("/api/upload", {
       method: "POST",
       headers: {
