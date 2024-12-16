@@ -27,6 +27,6 @@ export async function POST(req: NextRequest) {
       const messages = await openai.beta.threads.messages.list(thread.id);
       return NextResponse.json(messages.data[0].content[0]);
     } 
-    return NextResponse.json({result: "BadRequest"});
+    return NextResponse.json({message: "run failes with status " + run.status}, {status: 500});
   }
 }

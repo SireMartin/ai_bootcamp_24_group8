@@ -1,6 +1,5 @@
-import OpenAI, { BadRequestError, toFile } from "openai";
+import OpenAI, { toFile } from "openai";
 import { NextResponse, NextRequest } from 'next/server';
-import { json } from "stream/consumers";
 
 const openai = new OpenAI();
 
@@ -12,11 +11,10 @@ export async function POST(req: NextRequest) {
   const { data } = body;
   console.log("data : " + data?.substring(0, 20));
   if(data === null){
-    return NextResponse.json("BadRequest");
+    return NextResponse.json({message: "request contains no data"}, {status: 400});
   }
   const documentAssistantName: string = "documentAssistant";
   const documentAssistantVectorStoreName: string = "documentAssistantVectorStore";
-  //console.log(data.substring(0, 40));
 
   const prompt = `Analyze this receipt and extract the following information in a structured format:
   - Merchant details (name, address, country, VAT number, bank account)
@@ -153,12 +151,12 @@ export async function POST(req: NextRequest) {
     let listVectorStoreResp = await openai.beta.vectorStores.list();
     console.log(JSON.stringify(listVectorStoreResp));
     let vectorStoreId: string = "";
-    if((listVectorStoreResp.data?.length ?? 0) > 0  && listVectorStoreResp.data[0].name === documentAssistantName)
+    if((listVectorStoreResp.data?.length ?? 0) > 0  && listVectorStoreResp.data[0].name === documentAssistantVectorStoreName)
     {
       vectorStoreId = listVectorStoreResp.data[0].id;
     }
     else{
-      const createVectorStoreResp = await openai.beta.vectorStores.create({name: documentAssistantName});
+      const createVectorStoreResp = await openai.beta.vectorStores.create({name: documentAssistantVectorStoreName});
       vectorStoreId = createVectorStoreResp.id;
     }
 
@@ -177,9 +175,9 @@ export async function POST(req: NextRequest) {
         tool_resources: {file_search: {vector_store_ids: [vectorStoreId]}}});
     }
 
-    return NextResponse.json({result});
+    return NextResponse.json({message: result});
   } catch (error) {
     console.error("Error analyzing receipt:", error);
-    throw error;
+    return NextResponse.json({message: error});
   }
 }
