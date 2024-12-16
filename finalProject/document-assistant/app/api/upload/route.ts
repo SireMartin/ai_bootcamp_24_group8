@@ -17,10 +17,9 @@ export async function POST(req: NextRequest) {
   const documentAssistantVectorStoreName: string = "documentAssistantVectorStore";
 
   const prompt = `Analyze this receipt and extract the following information in a structured format:
-  - Merchant details (name, address, country, VAT number, bank account)
-  - Document date
-  - Line items with their quantities, prices (VAT exclusive and inclusive), VAT percentage, and discounts
-  - Summary with totals and currency
+  - Merchant details (name, address, zipcode, city, country, VAT number, bank account)
+  - Invoice details (invoice data, total price, currency)
+  - Line items with their name, quantities, price and unit price
   Please ensure the output matches exactly the specified JSON structure.`;
 
   try {
@@ -57,19 +56,40 @@ export async function POST(req: NextRequest) {
                   "address": {
                     "type": "string"
                   },
+                  "zipcode": {
+                    "type": "string"
+                  },
+                  "city": {
+                    "type": "string"
+                  },
                   "country": {
                     "type": "string"
                   },
                   "vat": {
                     "type": "string"
                   },
-                  "totalPriceVatExclusive": {
-                    "type": "number"
+                  "bankAccount": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "address",
+                  "zipcode",
+                  "city",
+                  "country",
+                  "vat",
+                  "bankAccount"
+                ],
+                "additionalProperties": false
+              },
+              "invoice": {
+                "type": "object",
+                "properties": {
+                  "invoiceDate": {
+                    "type": "string"
                   },
-                  "totalPriceVatInclusive": {
-                    "type": "number"
-                  },
-                  "totalDiscount": {
+                  "totalPrice": {
                     "type": "number"
                   },
                   "currency": {
@@ -77,19 +97,11 @@ export async function POST(req: NextRequest) {
                   }
                 },
                 "required": [
-                  "name",
-                  "address",
-                  "country",
-                  "vat",
-                  "totalPriceVatExclusive",
-                  "totalPriceVatInclusive",
-                  "totalDiscount",
+                  "invoiceDate",
+                  "totalPrice",
                   "currency"
                 ],
                 "additionalProperties": false
-              },
-              "documentDate": {
-                "type": "string",
               },
               "lineItems": {
                 "type": "array",
@@ -99,37 +111,21 @@ export async function POST(req: NextRequest) {
                     "name": {
                       "type": "string"
                     },
-                    "quantity": {
+                    "quantityItems": {
                       "type": "number"
                     },
-                    "priceVatExclusive": {
+                    "totalPrice": {
                       "type": "number"
                     },
-                    "priceVatInclusive": {
-                      "type": "string"
-                    },
-                    "unitPriceVatExclusive": {
-                      "type": "number"
-                    },
-                    "unitPriceVatInclusive": {
-                      "type": "string"
-                    },
-                    "vatPercentage": {
-                      "type": "number"
-                    },
-                    "priceDiscount": {
+                    "unitPrice": {
                       "type": "number"
                     }
                   },
                   "required": [
                     "name",
-                    "quantity",
-                    "priceVatExclusive",
-                    "priceVatInclusive",
-                    "unitPriceVatExclusive",
-                    "unitPriceVatInclusive",
-                    "vatPercentage",
-                    "priceDiscount"
+                    "quantityItems",
+                    "totalPrice",
+                    "unitPrice",
                   ],
                   "additionalProperties": false
                 }
@@ -137,7 +133,7 @@ export async function POST(req: NextRequest) {
             },
             "required": [
               "merchant",
-              "documentDate",
+              "invoice",
               "lineItems"
             ],
             "additionalProperties": false
@@ -149,34 +145,41 @@ export async function POST(req: NextRequest) {
     console.log(JSON.stringify(result));
 
     let listVectorStoreResp = await openai.beta.vectorStores.list();
-    console.log(JSON.stringify(listVectorStoreResp));
+    //console.log(JSON.stringify(listVectorStoreResp));
     let vectorStoreId: string = "";
-    if((listVectorStoreResp.data?.length ?? 0) > 0  && listVectorStoreResp.data[0].name === documentAssistantVectorStoreName)
-    {
-      vectorStoreId = listVectorStoreResp.data[0].id;
-    }
-    else{
+    let foundVectorStore = listVectorStoreResp.data.find(x => x.name === documentAssistantVectorStoreName);
+    if(foundVectorStore === undefined){
       const createVectorStoreResp = await openai.beta.vectorStores.create({name: documentAssistantVectorStoreName});
       vectorStoreId = createVectorStoreResp.id;
+      console.log("created new vectorstore with id " + vectorStoreId);
+    }
+    else{
+      vectorStoreId = foundVectorStore.id;
+      console.log("using existing vectorstore with id " + vectorStoreId);
     }
 
     const f = await toFile(Buffer.from(JSON.stringify(result)), `${result.documentDate}-${result.merchant.name}.json`);
     let fileCreateResp: {id: string} = await openai.files.create({file: f, purpose: "assistants"});
-    console.log(JSON.stringify("file id : " + fileCreateResp.id));
+    //console.log(JSON.stringify("file id : " + fileCreateResp.id));
     openai.beta.vectorStores.files.create(vectorStoreId, {file_id: fileCreateResp.id});
 
     let listAssistantsResp = await openai.beta.assistants.list();
-    if((listAssistantsResp.data?.length ?? 0) === 0 || listAssistantsResp.data[0].name !== documentAssistantName){
-      await openai.beta.assistants.create({ model: "gpt-4o-mini", 
+    let foundAsssistant = listAssistantsResp.data.find(x => x.name === documentAssistantName);
+    if(foundAsssistant === undefined){
+      const createdAssistant = await openai.beta.assistants.create({ model: "gpt-4o-mini", 
         name: documentAssistantName,
         description: "an assistant for your invoice and receipt data", 
         instructions: "Your read and interpret tickets and invoices. You provide answers about ticket and invoice content and make calculations on image content to solve the questions",
         tools: [{type: 'file_search'}],
         tool_resources: {file_search: {vector_store_ids: [vectorStoreId]}}});
+      console.log("created new assistent with id " + createdAssistant.id);
     }
-
+    else{
+      console.log("using extisting assistent with id " + foundAsssistant.id);
+    }
     return NextResponse.json({message: result});
-  } catch (error) {
+  } 
+  catch (error) {
     console.error("Error analyzing receipt:", error);
     return NextResponse.json({message: error});
   }
