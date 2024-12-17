@@ -1,7 +1,5 @@
 import OpenAI from "openai";
 import { NextResponse, NextRequest } from 'next/server';
-import { strict } from "assert";
-import { json } from "stream/consumers";
 
 const openai = new OpenAI();
 

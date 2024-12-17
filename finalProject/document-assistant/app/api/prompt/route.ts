@@ -19,15 +19,16 @@ export async function POST(req: NextRequest) {
   let foundAssistant = listAssistantsResp.data.find(x => x.name == documentAssistantName);
   if(foundAssistant !== undefined){
     const thread = await openai.beta.threads.create();
-    const message = await openai.beta.threads.messages.create(thread.id, 
+    await openai.beta.threads.messages.create(thread.id, 
       {role: "user", content: [{ type: "text", text: question}]}
     );
     const run = await openai.beta.threads.runs.createAndPoll(thread.id, {stream: false, assistant_id: listAssistantsResp.data[0].id});
     if(run.status === "completed"){
-      return NextResponse.json(message.content[0]);
+      const messages = await openai.beta.threads.messages.list(thread.id);
+      return NextResponse.json(messages.data[0].content[0]);
     }
     else{
-      return NextResponse.json({message: "run returns unexpected status " + run.status}, {status: 500});
+      return NextResponse.json({message: "run failes with status " + run.status}, {status: 500});
     }
   }
   else{
