@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
       console.log("using existing vectorstore with id " + vectorStoreId);
     }
 
-    const f = await toFile(Buffer.from(JSON.stringify(result)), `${result.documentDate}-${result.merchant.name}.json`);
+    const f = await toFile(Buffer.from(JSON.stringify(result)), `${result.invoice.invoiceDate}-${result.merchant.name}.json`);
     let fileCreateResp: {id: string} = await openai.files.create({file: f, purpose: "assistants"});
     //console.log(JSON.stringify("file id : " + fileCreateResp.id));
     openai.beta.vectorStores.files.create(vectorStoreId, {file_id: fileCreateResp.id});
@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
       const createdAssistant = await openai.beta.assistants.create({ model: "gpt-4o-mini", 
         name: documentAssistantName,
         description: "an assistant for your invoice and receipt data", 
-        instructions: "You vector store is filled with json data of parsed tickets and invoices. You provide answers to questions about ticket and invoice content and make calculations on the data. The json properties to use for retrieving documents, are the merchant.name and invoice.invoiceDate.",
+        instructions: "Your vector store is filled with json data of parsed tickets and invoices. You provide answers to questions about ticket and invoice content and make calculations on the data. The json properties to use for retrieving documents, are the merchant.name and invoice.invoiceDate.",
         tools: [{type: 'file_search'}],
         tool_resources: {file_search: {vector_store_ids: [vectorStoreId]}}});
       console.log("created new assistent with id " + createdAssistant.id);

@@ -1,6 +1,5 @@
-import OpenAI, { BadRequestError, toFile } from "openai";
+import OpenAI from "openai";
 import { NextResponse, NextRequest } from 'next/server';
-import { json } from "stream/consumers";
 
 const openai = new OpenAI();
 
@@ -25,11 +24,10 @@ export async function POST(req: NextRequest) {
     );
     const run = await openai.beta.threads.runs.createAndPoll(thread.id, {stream: false, assistant_id: listAssistantsResp.data[0].id});
     if(run.status === "completed"){
-      const messages = await openai.beta.threads.messages.list(thread.id);
-      return NextResponse.json(messages.data[0].content[0]);
+      return NextResponse.json(message.content[0]);
     }
     else{
-      return NextResponse.json({message: "run failes with status " + run.status}, {status: 500});
+      return NextResponse.json({message: "run returns unexpected status " + run.status}, {status: 500});
     }
   }
   else{
