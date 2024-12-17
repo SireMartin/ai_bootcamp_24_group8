@@ -46,12 +46,16 @@ export async function GET(req: NextRequest) {
                         },
                         "totalAmount": {
                           "type": "number"
+                        },
+                        "currency": {
+                          "type": "string"
                         }
                       },
                       "required": [
                         "merchantName",
                         "invoiceDate",
-                        "totalAmount"
+                        "totalAmount",
+                        "currency"
                       ],
                       "additionalProperties": false
                     }
