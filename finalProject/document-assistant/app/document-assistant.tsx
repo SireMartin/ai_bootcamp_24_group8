@@ -134,7 +134,9 @@ export default function DocumentAssistant() {
   }, [invoices])
 
   return (
-    <Card className="w-full max-w-4xl mx-auto bg-background text-foreground">
+
+      <Card className="w-full max-w-4xl mx-auto bg-background text-foreground">
+      
       <CardHeader className="flex flex-row items-center justify-between">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-[400px]">
           <TabsList>
@@ -195,7 +197,7 @@ export default function DocumentAssistant() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
               />
-              <Button onClick={handleSendMessage} disabled={isLoading}>
+              <Button onClick={handleSendMessage} disabled={isLoading || filePreview === null}>
                 {isLoading ? <Spinner className="h-4 w-4" /> : <Send className="h-4 w-4" />}
               </Button>
             </div>
@@ -257,5 +259,6 @@ export default function DocumentAssistant() {
         )}
       </CardContent>
     </Card>
+    
   )
 }
