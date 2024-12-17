@@ -53,7 +53,8 @@ export async function GET(req: NextRequest) {
                         "merchantName",
                         "invoiceDate",
                         "totalAmount",
-                        "currency"
+                        "currency",
+                        
                       ],
                       "additionalProperties": false
                     }
@@ -69,8 +70,9 @@ export async function GET(req: NextRequest) {
           }
         ],
         });
+    
     if(run.status === "requires_action"){
-      return NextResponse.json(JSON.parse(run.required_action!.submit_tool_outputs.tool_calls[0].function.arguments));
+      return NextResponse.json(JSON.parse(run.required_action!.submit_tool_outputs.tool_calls[0].function.arguments),{status:200});
     }
     else{
       return NextResponse.json({message: "run returned unexpected status " + run.status}, {status: 500});

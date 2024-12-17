@@ -28,59 +28,28 @@ import {
 } from "@/components/ui/table";
 import Spinner from "@/components/ui/Spinner";
 
-const chartData = [
-  { month: "Jan", essentials: 1200, discretionary: 800 },
-  { month: "Feb", essentials: 1150, discretionary: 950 },
-  { month: "Mar", essentials: 1300, discretionary: 700 },
-  { month: "Apr", essentials: 1100, discretionary: 1100 },
-  { month: "May", essentials: 1250, discretionary: 850 },
-  { month: "Jun", essentials: 1180, discretionary: 920 },
-];
 
-const chartColors = ["#3b82f6", "#f97316"]; // Blue for essentials, Orange for discretionary
+const chartColors = ["#f97316"]; // Blue for essentials, Orange for discretionary
 
-interface Invoice {
-  invoice: string;
-  paymentStatus: string;
-  totalAmount: string;
-  paymentMethod: string;
+
+interface MerchantAmount {
+  merchantName: string;
+  invoiceDate: string;
+  totalAmount: number;
+  currency: string;
 }
 
-const mockInvoices: Invoice[] = [
-  {
-    invoice: "INV001",
-    paymentStatus: "Paid",
-    totalAmount: "$250.00",
-    paymentMethod: "Credit Card",
-  },
-  {
-    invoice: "INV002",
-    paymentStatus: "Pending",
-    totalAmount: "$175.50",
-    paymentMethod: "PayPal",
-  },
-  {
-    invoice: "INV003",
-    paymentStatus: "Paid",
-    totalAmount: "$420.75",
-    paymentMethod: "Bank Transfer",
-  },
-  {
-    invoice: "INV004",
-    paymentStatus: "Overdue",
-    totalAmount: "$89.99",
-    paymentMethod: "Credit Card",
-  },
-  {
-    invoice: "INV005",
-    paymentStatus: "Paid",
-    totalAmount: "$562.30",
-    paymentMethod: "PayPal",
-  },
-];
+// Define the root interface for the entire data structure
+interface MerchantData {
+  merchantAmounts: MerchantAmount[];
+}
+
+
+
+type chartdata = Record<string, number>; 
+
 
 export default function DocumentAssistant() {
-  const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
   const [messages, setMessages] = useState<
     { role: "user" | "assistant"; content: string }[]
   >([]);
@@ -89,7 +58,8 @@ export default function DocumentAssistant() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState("chat");
   const [filePreview, setFilePreview] = useState<string | null>(null);
-
+  const [tabdata,setTabdata] = useState<MerchantData|null>(null)
+  const [ChartData,setChartData] = useState<chartdata|null>(null)
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add("dark");
@@ -118,6 +88,55 @@ export default function DocumentAssistant() {
     });
   };
 
+  function getTotalAmount(){
+    return tabdata?.merchantAmounts.reduce((sum, item) => sum + item.totalAmount, 0)
+  }
+  function groupByMerchant(data: MerchantData){
+    const groupedData = data.merchantAmounts.reduce<Record<string, number>>((acc, curr) => {
+      const { merchantName, totalAmount } = curr;
+  
+      if (!acc[merchantName]) {
+        acc[merchantName] = 0;
+      }
+  
+      acc[merchantName] += totalAmount;
+  
+      return acc;
+    }, {});
+  
+    setChartData(groupedData) ;
+  }
+
+  const handelchartdata = async()=>{
+    setIsLoading(true)
+    try{
+      const response = await fetch("/api/summarize",{
+        method:"GET"
+      })
+     
+      if (response.ok){
+        const data = await response.json()
+        setTabdata(data)
+        groupByMerchant(data)
+        
+      } else {
+        // Handle case where the response is not OK (status code 4xx or 5xx)
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: `Error: Response not OK, status: ${response.status}` },
+        ]);
+      }
+    }catch (error){
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Error: Request failed" },
+      ]);
+    }finally{
+      setIsLoading(false)
+    }
+    
+  }
+
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -143,6 +162,8 @@ export default function DocumentAssistant() {
         }),
       });
       const { data, error, payload } = await result.json();
+      await handelchartdata()
+      
       // Handle the response if needed
     } catch (error) {
       console.error("Upload failed", error);
@@ -151,49 +172,7 @@ export default function DocumentAssistant() {
     }
   };
 
-  // const handleSendMessage = useCallback(async () => {
-  //   if (input.trim()) {
-  //     setMessages((prev) => [...prev, { role: "user", content: input }]);
-  //     setInput("");
-  //     setIsLoading(true);
 
-  //     try {
-  //       const response = await fetch("/api/prompt", {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({ question: input }),
-  //       });
-
-  //       if (response.ok) {
-  //         const data = await response.json();
-
-  //         // Извлекаем "value" и чистим текст от [числа:число^source] конструкций
-  //         let assistantResponse = data?.text?.value ?? "No valid response";
-  //         assistantResponse = assistantResponse
-  //           .replace(/\[\d+:\d+\^source\]/g, "")
-  //           .trim();
-
-  //         setMessages((prev) => [
-  //           ...prev,
-  //           { role: "assistant", content: assistantResponse },
-  //         ]);
-  //       } else {
-  //         setMessages((prev) => [
-  //           ...prev,
-  //           { role: "assistant", content: "Error: Failed to get a response" },
-  //         ]);
-  //       }
-  //     } catch (error) {
-  //       console.error("Request failed:", error);
-  //       setMessages((prev) => [
-  //         ...prev,
-  //         { role: "assistant", content: "Error: Request failed" },
-  //       ]);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   }
-  // }, [input]);
 
   const handleSendMessage = useCallback(async () => {
     if (input.trim()) {
@@ -240,9 +219,11 @@ export default function DocumentAssistant() {
     }
   }, [input]);
 
+
+
   return (
 
-      <Card className="w-full max-w-4xl mx-auto bg-background text-foreground">
+      <Card className="w-full max-w-4xl mx-auto bg-background text-foreground ">
       
       <CardHeader className="flex flex-row items-center justify-between">
         <Tabs
@@ -296,54 +277,74 @@ export default function DocumentAssistant() {
                 </button>
               )}
             </div>
-            <ScrollArea className="h-[400px] w-full rounded-md border p-4 relative">
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex ${
-                    message.role === "user" ? "justify-end" : "justify-start"
-                  } mb-4`}
-                >
-                  <div
-                    className={`flex items-start ${
-                      message.role === "user" ? "flex-row-reverse" : "flex-row"
-                    }`}
-                  >
-                    <Avatar
-                      className={`${message.role === "user" ? "ml-2" : "mr-2"}`}
+
+            {/* render only when fileis uploaded */}
+            {filePreview !== null && (
+                <>
+                  {/* Scrollable Message Area */}
+                  <ScrollArea className="h-[400px] w-full rounded-md border p-4 relative">
+                    {messages.map((message, index) => (
+                      <div
+                        key={index}
+                        className={`flex ${
+                          message.role === "user" ? "justify-end" : "justify-start"
+                        } mb-4`}
+                      >
+                        <div
+                          className={`flex items-start ${
+                            message.role === "user" ? "flex-row-reverse" : "flex-row"
+                          }`}
+                        >
+                          <Avatar
+                            className={`${
+                              message.role === "user" ? "ml-2" : "mr-2"
+                            }`}
+                          >
+                            <AvatarFallback>
+                              {message.role === "user" ? <User /> : <Bot />}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div
+                            className={`rounded-lg p-2 max-w-xs ${
+                              message.role === "user"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted"
+                            }`}
+                          >
+                            {message.content}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </ScrollArea>
+
+                  {/* Input Field and Button */}
+                  <div className="flex w-full items-center space-x-2 mt-2">
+                    <Input
+                      type="text"
+                      placeholder="Ask a question about your invoices..."
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                    />
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={isLoading }
                     >
-                      <AvatarFallback>
-                        {message.role === "user" ? <User /> : <Bot />}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div
-                      className={`rounded-lg p-2 max-w-xs ${
-                        message.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted"
-                      }`}
-                    >
-                      {message.content}
-                    </div>
+                      {isLoading ? (
+                        <Spinner className="h-4 w-4" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                    </Button>
                   </div>
-                </div>
-              ))}
-            </ScrollArea>
-            <div className="flex w-full items-center space-x-2">
-              <Input
-                type="text"
-                placeholder="Ask a question about your invoices..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-              />
-              <Button onClick={handleSendMessage} disabled={isLoading}>
-                {isLoading ? <Spinner className="h-4 w-4" /> : <Send className="h-4 w-4" />}
-              </Button>
-            </div>
+                </>
+              )}
+
           </div>
         )}
-        {activeTab === "history" && (
+        {activeTab === "history" && tabdata!==null &&(
+          
           <Table>
             <TableCaption>A list of your recent invoices.</TableCaption>
             <TableHeader>
@@ -355,13 +356,13 @@ export default function DocumentAssistant() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {invoices.map((invoice) => (
-                <TableRow key={invoice.invoice}>
+              {tabdata.merchantAmounts.map((invoice) => (
+                <TableRow key={invoice.merchantName}>
                   <TableCell className="font-medium">
-                    {invoice.invoice}
+                    {invoice.merchantName}
                   </TableCell>
-                  <TableCell>{invoice.paymentStatus}</TableCell>
-                  <TableCell>{invoice.paymentMethod}</TableCell>
+                  <TableCell>Paid</TableCell>
+                  <TableCell>{invoice.currency}</TableCell>
                   <TableCell className="text-right">
                     {invoice.totalAmount}
                   </TableCell>
@@ -378,31 +379,30 @@ export default function DocumentAssistant() {
             </TableFooter>
           </Table>
         )}
-        {activeTab === "insights" && (
+        {activeTab === "insights" && ChartData!==null && (
+
           <Card>
+            
             <CardHeader>
               <CardTitle>Private Spending Overview</CardTitle>
               <CardDescription>
-                Essential vs Discretionary Spending (January - June 2024)
+                spending per merchant
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartCard title="Monthly Spending">
+              <ChartCard title="Spendings">
                 <Chart
-                  data={chartData}
-                  categories={["essentials", "discretionary"]}
+                  data={Object.keys(ChartData).map((merchantName) => ({
+                    [merchantName]: ChartData[merchantName], 
+                  }))}
+                  categories={Object.keys(ChartData)}
                   colors={chartColors}
                 />
               </ChartCard>
             </CardContent>
             <CardFooter className="flex-col items-start gap-2 text-sm">
-              <div className="flex gap-2 font-medium leading-none">
-                Discretionary spending up by 3.8% this month{" "}
-                <TrendingUp className="h-4 w-4" />
-              </div>
               <div className="leading-none text-muted-foreground">
-                Showing essential vs discretionary spending for the last 6
-                months
+                Showing total amounts spent per merchant 
               </div>
             </CardFooter>
           </Card>
