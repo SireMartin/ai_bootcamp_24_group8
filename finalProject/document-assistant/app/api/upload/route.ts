@@ -7,9 +7,7 @@ export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
   console.log("Received request");
-  const body: { data: string } = await req.json();
-  const { data } = body;
-  console.log("data : " + data?.substring(0, 20));
+  const { data } = await req.json();
   if(data === null){
     return NextResponse.json({message: "request contains no data"}, {status: 400});
   }
@@ -169,7 +167,7 @@ export async function POST(req: NextRequest) {
       const createdAssistant = await openai.beta.assistants.create({ model: "gpt-4o-mini", 
         name: documentAssistantName,
         description: "an assistant for your invoice and receipt data", 
-        instructions: "Your read and interpret tickets and invoices. You provide answers about ticket and invoice content and make calculations on image content to solve the questions",
+        instructions: "You vector store is filled with json data of parsed tickets and invoices. You provide answers to questions about ticket and invoice content and make calculations on the data. The json properties to use for retrieving documents, are the merchant.name and invoice.invoiceDate.",
         tools: [{type: 'file_search'}],
         tool_resources: {file_search: {vector_store_ids: [vectorStoreId]}}});
       console.log("created new assistent with id " + createdAssistant.id);
