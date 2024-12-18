@@ -26,7 +26,6 @@ export async function POST(req: NextRequest) {
     - Line items with their name, quantities, VAT, prices (with and without vat) and unit price. These can both be products or services.
     If you can find a VAT number on the invoice, you will find prices with and without VAT. If both types of prices are not explicitly listed, you can calculate those based on a vat percentage, listed somewhere.
     Be aware that separate line items could be charged different amount of VAT, depending on the type of service provided.
-    If you find an entity with VAT 0847260950 then this should indicate the buyer region of the document.
     If you can find other invoice related fields on the document, feel free to add them to the result.
     The output you provide must be in JSON fromat.`;
 
