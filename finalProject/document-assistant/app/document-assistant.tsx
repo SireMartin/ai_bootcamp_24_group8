@@ -357,7 +357,7 @@ export default function DocumentAssistant() {
             </TableHeader>
             <TableBody>
               {tabdata.merchantAmounts.map((invoice) => (
-                <TableRow key={invoice.merchantName}>
+                <TableRow key={`${invoice.merchantName}_${Math.random()}`}>
                   <TableCell className="font-medium">
                     {invoice.merchantName}
                   </TableCell>
