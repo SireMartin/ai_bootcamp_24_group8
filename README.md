@@ -1,7 +1,7 @@
 # Final Project Encode AI Bootcamp 24 Group 8 Repo
 # Invoice Assistant
-A RAG based system to upload your scanned documents and ask questions about it.
-Also 2 additional BI tabs are added.
+A RAG based system to upload your scanned documents and ask questions about it.<br/>
+Also 2 additional BI tabs are added.<br/>
 
 ## Run Info
 export your open ai key OPENAI_API_KEY=...<br/>
