@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     );
     const run = await openai.beta.threads.runs.createAndPoll(thread.id, { 
         stream: false, 
-        assistant_id: listAssistantsResp.data[0].id,
+        assistant_id: foundAssistant.id,
         tool_choice: "auto",
         tools: [
           { 
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
               strict: true
             }
           }
-        ],
+        ]
         });
     
     if(run.status === "requires_action"){

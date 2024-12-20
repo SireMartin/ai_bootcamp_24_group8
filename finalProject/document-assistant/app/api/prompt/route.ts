@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       content: [
         {
           type: "text",
-          text: `${question} (Return ONLY the requested data. Do not include explanations, extra context, or JSON formatting. Strictly provide the answer as plain text. Don't provide source of information in the responce)`,
+          text: question,
         },
       ],
     });

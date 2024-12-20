@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
       },
     });
     const result = JSON.parse(response.choices[0].message.content || "{}");
-    console.log(JSON.stringify(result));
+    console.log(JSON.stringify(result, null, "  "));
 
     let listVectorStoreResp = await openai.beta.vectorStores.list();
     //console.log(JSON.stringify(listVectorStoreResp));

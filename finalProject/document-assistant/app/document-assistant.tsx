@@ -107,7 +107,7 @@ export default function DocumentAssistant() {
     setChartData(groupedData) ;
   }
 
-  const handelchartdata = async()=>{
+  const handleChartData = async()=>{
     setIsLoading(true)
     try{
       const response = await fetch("/api/summarize",{
@@ -162,7 +162,6 @@ export default function DocumentAssistant() {
         }),
       });
       const { data, error, payload } = await result.json();
-      await handelchartdata()
       
       // Handle the response if needed
     } catch (error) {
@@ -277,136 +276,130 @@ export default function DocumentAssistant() {
                 </button>
               )}
             </div>
-
-            {/* render only when fileis uploaded */}
-            {filePreview !== null && (
-                <>
-                  {/* Scrollable Message Area */}
-                  <ScrollArea className="h-[400px] w-full rounded-md border p-4 relative">
-                    {messages.map((message, index) => (
-                      <div
-                        key={index}
-                        className={`flex ${
-                          message.role === "user" ? "justify-end" : "justify-start"
-                        } mb-4`}
-                      >
-                        <div
-                          className={`flex items-start ${
-                            message.role === "user" ? "flex-row-reverse" : "flex-row"
-                          }`}
-                        >
-                          <Avatar
-                            className={`${
-                              message.role === "user" ? "ml-2" : "mr-2"
-                            }`}
-                          >
-                            <AvatarFallback>
-                              {message.role === "user" ? <User /> : <Bot />}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div
-                            className={`rounded-lg p-2 max-w-xs ${
-                              message.role === "user"
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted"
-                            }`}
-                          >
-                            {message.content}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </ScrollArea>
-
-                  {/* Input Field and Button */}
-                  <div className="flex w-full items-center space-x-2 mt-2">
-                    <Input
-                      type="text"
-                      placeholder="Ask a question about your invoices..."
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                    />
-                    <Button
-                      onClick={handleSendMessage}
-                      disabled={isLoading }
+              <ScrollArea className="h-[400px] w-full rounded-md border p-4 relative">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${
+                      message.role === "user" ? "justify-end" : "justify-start"
+                    } mb-4`}
+                  >
+                    <div
+                      className={`flex items-start ${
+                        message.role === "user" ? "flex-row-reverse" : "flex-row"
+                      }`}
                     >
-                      {isLoading ? (
-                        <Spinner className="h-4 w-4" />
-                      ) : (
-                        <Send className="h-4 w-4" />
-                      )}
-                    </Button>
+                      <Avatar
+                        className={`${
+                          message.role === "user" ? "ml-2" : "mr-2"
+                        }`}
+                      >
+                        <AvatarFallback>
+                          {message.role === "user" ? <User /> : <Bot />}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div
+                        className={`rounded-lg p-2 max-w-xs ${
+                          message.role === "user"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted"
+                        }`}
+                      >
+                        {message.content}
+                      </div>
+                    </div>
                   </div>
-                </>
-              )}
+                ))}
+              </ScrollArea>
 
+              {/* Input Field and Button */}
+              <div className="flex w-full items-center space-x-2 mt-2">
+                <Input
+                  type="text"
+                  placeholder="Ask a question about your invoices..."
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                />
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={isLoading }
+                >
+                  {isLoading ? (
+                    <Spinner className="h-4 w-4" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
           </div>
         )}
-        {activeTab === "history" && tabdata!==null &&(
-          
-          <Table>
-            <TableCaption>A list of your recent invoices.</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[100px]">Invoice</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Method</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tabdata.merchantAmounts.map((invoice) => (
-                <TableRow key={`${invoice.merchantName}_${Math.random()}`}>
-                  <TableCell className="font-medium">
-                    {invoice.merchantName}
-                  </TableCell>
-                  <TableCell>Paid</TableCell>
-                  <TableCell>{invoice.currency}</TableCell>
+        <>
+          <Button variant="outline" onClick={handleChartData}>
+            Summarize
+          </Button>
+          {activeTab === "history" && tabdata!==null &&(
+            <Table>
+              <TableCaption>A list of your recent invoices.</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">Invoice</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Method</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tabdata.merchantAmounts.map((invoice) => (
+                  <TableRow key={`${invoice.merchantName}_${Math.random()}`}>
+                    <TableCell className="font-medium">
+                      {invoice.merchantName}
+                    </TableCell>
+                    <TableCell>Paid</TableCell>
+                    <TableCell>{invoice.currency}</TableCell>
+                    <TableCell className="text-right">
+                      {invoice.totalAmount}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={3}>Total</TableCell>
                   <TableCell className="text-right">
-                    {invoice.totalAmount}
+                    ${getTotalAmount()}
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={3}>Total</TableCell>
-                <TableCell className="text-right">
-                  ${getTotalAmount()}
-                </TableCell>
-              </TableRow>
-            </TableFooter>
-          </Table>
-        )}
-        {activeTab === "insights" && ChartData!==null && (
-
-          <Card>
-            
-            <CardHeader>
-              <CardTitle>Private Spending Overview</CardTitle>
-              <CardDescription>
-                spending per merchant
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ChartCard title="Spendings">
-                <Chart
-                  data={Object.keys(ChartData).map((merchantName) => ({
-                    [merchantName]: ChartData[merchantName], 
-                  }))}
-                  categories={Object.keys(ChartData)}
-                  colors={chartColors}
-                />
-              </ChartCard>
-            </CardContent>
-            <CardFooter className="flex-col items-start gap-2 text-sm">
-              <div className="leading-none text-muted-foreground">
-                Showing total amounts spent per merchant 
-              </div>
-            </CardFooter>
-          </Card>
-        )}
+              </TableFooter>
+            </Table>
+          )}
+          {activeTab === "insights" && ChartData!==null && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Private Spending Overview</CardTitle>
+                <CardDescription>
+                  spending per merchant
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ChartCard title="Spendings">
+                  <Chart
+                    data={Object.keys(ChartData).map((merchantName) => ({
+                      [merchantName]: ChartData[merchantName], 
+                    }))}
+                    categories={Object.keys(ChartData)}
+                    colors={chartColors}
+                  />
+                </ChartCard>
+              </CardContent>
+              <CardFooter className="flex-col items-start gap-2 text-sm">
+                <div className="leading-none text-muted-foreground">
+                  Showing total amounts spent per merchant 
+                </div>
+              </CardFooter>
+            </Card>
+          )}
+        </>
       </CardContent>
     </Card>
   )
