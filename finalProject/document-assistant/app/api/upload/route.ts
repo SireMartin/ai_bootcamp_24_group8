@@ -1,5 +1,5 @@
-import OpenAI, { toFile } from "openai";
-import { useState } from "react";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { OpenAI, toFile} from 'openai'
 import { NextResponse, NextRequest } from 'next/server';
 
 const openai = new OpenAI();
@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
   if(data === null){
     return NextResponse.json({message: "request contains no data"}, {status: 400});
   }
+  
   const documentAssistantName: string = "documentAssistant";
   const documentAssistantVectorStoreName: string = "documentAssistantVectorStore";
 
@@ -30,40 +31,20 @@ export async function POST(req: NextRequest) {
     The output you provide must be in JSON fromat.`;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
+    //console.log("api Key = " + process.env.GEMINI_API_KEY)
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: 'models/gemini-2.0-flash-exp' });
+
+    const result = await model.generateContent([
         {
-          role: "developer",
-          content: [
-            {
-              type: "text",
-              text: developerInstructions,
-            }
-          ]
-        },
-        {
-          "role": "user",
-          content:[
-            {
-              type: "image_url",
-              image_url: {
-                url: data,
-              },
+            inlineData: {
+                data: data.split(',')[1],
+                mimeType: "application/pdf",
             },
-            {
-              type: "text",
-              text: "Analyse the provided image of an invoice / receipt to extract all possible commercial data from it."
-            }
-          ],
         },
-      ],
-      response_format: {
-        type: "json_object"
-      },
-    });
-    const result = JSON.parse(response.choices[0].message.content || "{}");
-    console.log(JSON.stringify(result, null, "  "));
+        developerInstructions,
+    ]);
+    console.log(result.response.text());
 
     let listVectorStoreResp = await openai.beta.vectorStores.list();
     //console.log(JSON.stringify(listVectorStoreResp));
@@ -80,7 +61,7 @@ export async function POST(req: NextRequest) {
     }
 
     //const f = await toFile(Buffer.from(JSON.stringify(result)), `${result.invoice.invoiceDate}-${result.merchant.name}.json`);
-    const f = await toFile(Buffer.from(JSON.stringify(result)), `${vectorStoreId}_${documentIndex}.json`);
+    const f = await toFile(Buffer.from(JSON.stringify(result.response.text())), `${vectorStoreId}_${documentIndex}.json`);
     documentIndex = documentIndex + 1;
     let fileCreateResp: {id: string} = await openai.files.create({file: f, purpose: "assistants"});
     //console.log(JSON.stringify("file id : " + fileCreateResp.id));

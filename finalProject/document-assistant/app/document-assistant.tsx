@@ -260,7 +260,7 @@ export default function DocumentAssistant() {
                 type="file"
                 className="hidden"
                 onChange={handleFileUpload}
-                accept=".jpg,.jpeg,.png"
+                accept=".jpg,.jpeg,.png,.pdf"
               />
               {filePreview && (
                 <button
